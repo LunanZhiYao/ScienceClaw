@@ -1,8 +1,9 @@
 services:
   sandbox:
     build:
-      context: .
-      dockerfile: ScienceClaw/sandbox/Dockerfile
+      context: ./ScienceClaw/sandbox
+      additional_contexts:
+        websearch: ./ScienceClaw/websearch
     image: scienceclaw-sandbox:local
     security_opt:
       - seccomp:unconfined
@@ -78,8 +79,9 @@ services:
 
   backend:
     build:
-      context: .
-      dockerfile: ScienceClaw/backend/Dockerfile
+      context: ./ScienceClaw/backend
+      additional_contexts:
+        websearch: ./ScienceClaw/websearch
     image: scienceclaw-backend:local
     volumes:
       - ./ScienceClaw/backend:/app/backend

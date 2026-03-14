@@ -76,6 +76,7 @@ htmlcov/
 .python-version
 
 # Docker
+.buildx-cache/
 *.log
 
 # OS
@@ -91,5 +92,4 @@ Desktop.ini
 .trae
 workspace
 .plan
-release.sh
 sync-to-huawei-swr-docker.sh

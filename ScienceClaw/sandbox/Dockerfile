@@ -14,18 +14,14 @@ RUN ln -sf /opt/python3.12/bin/python3.12 /usr/local/bin/python3 \
     && ln -sf /opt/python3.12/bin/pip3 /usr/local/bin/pip
 
 # ── 1. 复制依赖文件 ──────────────────────────────
-COPY ScienceClaw/sandbox/requirements.txt /tmp/requirements.txt
-
+COPY requirements.txt /tmp/requirements.txt
 # ── 2. 一次性安装所有依赖（系统 + Node + Python）──────────────────────
-RUN sed -i "s@http://.*archive.ubuntu.com@http://${APT_MIRROR}@g" /etc/apt/sources.list 2>/dev/null || true \
-    && sed -i "s@http://.*security.ubuntu.com@http://${APT_MIRROR}@g" /etc/apt/sources.list 2>/dev/null || true \
-    && apt-get update \
-    && apt-get install -y --no-install-recommends \
+RUN apt-get update --allow-insecure-repositories \
+    && apt-get install -y --no-install-recommends --allow-unauthenticated \
         build-essential clang \
         fonts-wqy-microhei fontconfig \
         poppler-utils pandoc libreoffice-writer \
     && fc-cache -fv \
-    && rm -rf /var/lib/apt/lists/* \
     && npm config set registry ${NPM_MIRROR} \
     && npm install -g skills docx pptxgenjs \
     && npm cache clean --force \
@@ -40,5 +36,5 @@ RUN sed -i "s@http://.*archive.ubuntu.com@http://${APT_MIRROR}@g" /etc/apt/sourc
 ENV CC=clang NODE_PATH="/usr/lib/node_modules"
 
 # ── 3. 项目文件 ────────────────────────────────────────────────────────
-COPY ScienceClaw/websearch/seekr_sdk.py /opt/python3.12/lib/python3.12/site-packages/seekr_sdk.py
-COPY ScienceClaw/sandbox/tool_runner.py /app/_tool_runner.py
+COPY --from=websearch seekr_sdk.py /opt/python3.12/lib/python3.12/site-packages/seekr_sdk.py
+COPY tool_runner.py /app/_tool_runner.py

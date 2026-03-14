@@ -37,10 +37,10 @@ RUN pip install --no-cache-dir \
     -i ${PIP_MIRROR} --break-system-packages --ignore-installed
 
 # ── 3. 项目文件（经常变动，放最后以保护上方缓存） ────────────────────
-COPY ScienceClaw/websearch/seekr_sdk.py /usr/local/lib/python3.10/dist-packages/seekr_sdk.py
+COPY --from=websearch seekr_sdk.py /usr/local/lib/python3.10/dist-packages/seekr_sdk.py
 RUN ln -sf /usr/local/lib/python3.10/dist-packages/seekr_sdk.py \
         /opt/python3.11/lib/python3.11/site-packages/seekr_sdk.py \
     && ln -sf /usr/local/lib/python3.10/dist-packages/seekr_sdk.py \
         /opt/python3.12/lib/python3.12/site-packages/seekr_sdk.py
 
-COPY ScienceClaw/sandbox/tool_runner.py /app/_tool_runner.py
+COPY tool_runner.py /app/_tool_runner.py
