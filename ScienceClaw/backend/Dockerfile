@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1.4
 ARG BASE_IMAGE=python:3.13-slim
 FROM ${BASE_IMAGE}
 
@@ -5,25 +6,26 @@ ARG USE_MIRROR=true
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PIP_NO_CACHE_DIR=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
     PYTHONPATH=/app \
     TZ=Asia/Shanghai
 
 WORKDIR /app
 
-RUN apt-get update \
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    apt-get update \
     && apt-get install -y --no-install-recommends \
       build-essential \
       curl \
       libxrender1 \
       libxext6 \
-      libx11-6 \
-    && rm -rf /var/lib/apt/lists/*
+      libx11-6
 
-# Install all Python dependencies
+# Install all Python dependencies (BuildKit cache)
 COPY ./requirements.txt .
-RUN pip install -r requirements.txt 
+RUN --mount=type=cache,target=/root/.cache/pip,sharing=locked \
+    pip install -r requirements.txt 
 
 # Install seekr_sdk (single-file client for websearch microservice)
 COPY ./seekr_sdk.py /usr/local/lib/python3.13/site-packages/seekr_sdk.py

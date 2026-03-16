@@ -555,6 +555,8 @@ async def _arun_deep_agent_stream(
                         continue
 
                     if isinstance(msg_chunk, AIMessageChunk):
+                        logger.info(f"[DeepAgent] AIMessageChunk: {msg_chunk}")
+                        # logger.info(f"[DeepAgent] AIMessageChunk: content={msg_chunk.content!r}, tool_call_chunks={getattr(msg_chunk, 'tool_call_chunks', None)}, additional_kwargs={msg_chunk.additional_kwargs}")
                         # 提取 token 使用量（通常在最后一个 chunk 中）
                         token_info = _extract_token_usage(msg_chunk)
                         if token_info["input_tokens"] or token_info["output_tokens"]:
@@ -746,6 +748,21 @@ async def _arun_deep_agent_stream(
 
     except Exception as exc:
         logger.exception("DeepAgent runner failed")
+        # 报错时先下发 plan_update 将当前步骤标为 failed，避免前端仍显示「推理完成」且任务进度一直旋转
+        try:
+            if _current_todos:
+                failed_plan_steps = _todos_to_plan_steps(_current_todos)
+                for step in failed_plan_steps:
+                    if step.get("status") not in ("completed", "done"):
+                        step["status"] = "failed"
+                yield {"event": "plan_update", "data": {"plan": failed_plan_steps}}
+            else:
+                failed_plan = normalize_plan_steps([{**plan[0], "status": "failed"}])
+                yield {"event": "plan_update", "data": {"plan": _plan_for_frontend(failed_plan)}}
+            # 不发送 step_end，避免 session 层将其映射为 completed 覆盖 failed 状态
+        except NameError:
+            # _current_todos/plan 未定义（异常发生在 stream 之前）时跳过
+            pass
         err_type = type(exc).__name__
         err_msg = str(exc)
         err_lower = err_msg.lower()

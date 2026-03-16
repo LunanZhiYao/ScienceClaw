@@ -50,3 +50,8 @@ export async function updateModel(id: string, data: UpdateModelRequest): Promise
 export async function deleteModel(id: string): Promise<void> {
   await apiClient.delete(`/models/${id}`);
 }
+
+export async function detectContextWindow(data: { provider: string; base_url?: string; api_key?: string; model_name: string; model_id?: string }): Promise<number> {
+  const response = await apiClient.post<ApiResponse<{ context_window: number }>>('/models/detect-context-window', data);
+  return response.data.data.context_window;
+}

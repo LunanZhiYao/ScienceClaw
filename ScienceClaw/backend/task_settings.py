@@ -3,14 +3,14 @@ from pydantic import BaseModel, Field
 
 from backend.mongodb.db import db
 
-# Defaults tuned for DeepSeek v3.2 (131K context window):
-#   max_tokens      = 64K   — output ceiling, model can use up to this per reply
+# Defaults tuned for 128K context window models (e.g. DeepSeek v3.2):
+#   max_tokens      = 8K    — output ceiling, sufficient for most single-step replies
 #   output_reserve  = 16K   — reserved in history budget calc (actual per-step output)
-#   history_budget  = 131072 × 0.85 - (16384 + 4000 + 6000 + 1000) ≈ 84K tokens
-#   max_history_rounds = 10 — safe under 84K budget
+#   history_budget  = 128000 × 0.85 - (16384 + 4000 + 6000 + 1000) ≈ 81K tokens
+#   max_history_rounds = 10 — safe under 81K budget
 DEFAULT_AGENT_STREAM_TIMEOUT = 10800
 DEFAULT_SANDBOX_EXEC_TIMEOUT = 1200
-DEFAULT_MAX_TOKENS = 64000
+DEFAULT_MAX_TOKENS = 8192
 DEFAULT_OUTPUT_RESERVE = 16384
 DEFAULT_MAX_HISTORY_ROUNDS = 10
 DEFAULT_MAX_OUTPUT_CHARS = 50000

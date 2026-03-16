@@ -11,6 +11,7 @@ from backend.mongodb.db import db
 from backend.models import ModelConfig, CreateModelRequest, UpdateModelRequest, list_user_models
 
 router = APIRouter(prefix="/models", tags=["models"])
+from loguru import logger
 
 class ApiResponse(BaseModel):
     code: int = Field(default=0)
@@ -86,10 +87,63 @@ async def create_model(body: CreateModelRequest, current_user: User = Depends(re
     # Return with id
     return ApiResponse(data=new_model.model_dump())
 
+class DetectContextWindowRequest(BaseModel):
+    provider: str
+    base_url: str | None = None
+    api_key: str | None = None
+    model_name: str
+    model_id: str | None = None
+
+
+async def _probe_context_window_via_api(base_url: str | None, api_key: str | None, model_name: str) -> int | None:
+    """Try to retrieve context window from the provider's /models/{model} endpoint."""
+    if not api_key:
+        return None
+    import httpx
+    url = (base_url or "https://api.openai.com/v1").rstrip("/")
+    headers = {"Authorization": f"Bearer {api_key}"}
+    try:
+        async with httpx.AsyncClient(timeout=10) as client:
+            resp = await client.get(f"{url}/models/{model_name}", headers=headers)
+            if resp.status_code != 200:
+                return None
+            data = resp.json()
+            for key in ("context_window", "context_length", "max_model_len", "max_tokens"):
+                val = data.get(key)
+                if isinstance(val, int) and val >= 1024:
+                    return val
+    except Exception:
+        pass
+    return None
+
+
+@router.post("/detect-context-window", response_model=ApiResponse)
+async def detect_context_window(body: DetectContextWindowRequest, current_user: User = Depends(require_user)):
+    """Detect context window: try local table first, then probe via API."""
+    from backend.deepagent.engine import _infer_context_window
+
+    inferred = _infer_context_window(body.model_name)
+    if inferred is not None:
+        return ApiResponse(data={"context_window": inferred, "source": "local"})
+
+    api_key = body.api_key
+    base_url = body.base_url
+    if body.model_id and (not api_key):
+        existing = await db.get_collection("models").find_one({"_id": body.model_id})
+        if existing:
+            api_key = api_key or existing.get("api_key")
+            base_url = base_url or existing.get("base_url")
+
+    probed = await _probe_context_window_via_api(base_url, api_key, body.model_name)
+    if probed is not None:
+        return ApiResponse(data={"context_window": probed, "source": "api"})
+
+    raise HTTPException(status_code=404, detail=f"Unable to detect context window for model '{body.model_name}'. Please set it manually.")
+
+
 @router.put("/{model_id}", response_model=ApiResponse)
 async def update_model(model_id: str, body: UpdateModelRequest, current_user: User = Depends(require_user)):
     """Update a user defined model"""
-    # Check ownership
     existing = await db.get_collection("models").find_one({"_id": model_id})
     if not existing:
         raise HTTPException(status_code=404, detail="Model not found")
@@ -105,16 +159,11 @@ async def update_model(model_id: str, body: UpdateModelRequest, current_user: Us
     if not update_data:
         return ApiResponse(data={"id": model_id})
     
-    # Verify if connection details changed
-    # We merge existing with updates to get full config for verification
     merged_base_url = update_data.get("base_url", existing.get("base_url"))
     merged_api_key = update_data.get("api_key", existing.get("api_key"))
     merged_model_name = update_data.get("model_name", existing.get("model_name"))
-    merged_provider = existing.get("provider") # Provider usually doesn't change or isn't in update request?
-    # UpdateModelRequest doesn't have provider? Let's check model definition.
-    # UpdateModelRequest has name, base_url, api_key, model_name, is_active.
+    merged_provider = existing.get("provider")
     
-    # Only verify if critical fields are updated
     if any(k in update_data for k in ["base_url", "api_key", "model_name"]):
         await verify_model_connection(merged_provider, merged_base_url, merged_api_key, merged_model_name)
 
@@ -126,6 +175,7 @@ async def update_model(model_id: str, body: UpdateModelRequest, current_user: Us
     )
     
     return ApiResponse(data={"id": model_id})
+
 
 @router.delete("/{model_id}", response_model=ApiResponse)
 async def delete_model(model_id: str, current_user: User = Depends(require_user)):

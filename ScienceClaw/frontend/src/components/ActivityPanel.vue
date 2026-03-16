@@ -16,10 +16,13 @@
             <div class="absolute inset-0 rounded-full border-2 border-blue-200 dark:border-blue-800"></div>
             <div class="absolute inset-0 rounded-full border-2 border-blue-500 border-t-transparent animate-spin"></div>
           </div>
+          <div v-else-if="lastTurnHadError" class="size-4 rounded-full bg-amber-400 flex items-center justify-center flex-shrink-0 shadow-sm shadow-amber-400/20">
+            <svg class="size-2.5 text-white" viewBox="0 0 16 16" fill="currentColor"><path fill-rule="evenodd" d="M8 16A8 8 0 108 0a8 8 0 000 16zM7.25 4.75a.75.75 0 011.5 0v3.5a.75.75 0 01-1.5 0v-3.5zM8 11a1 1 0 100-2 1 1 0 000 2z"/></svg>
+          </div>
           <div v-else class="size-4 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center flex-shrink-0 shadow-sm shadow-emerald-400/20">
             <svg class="size-2.5 text-white" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="2 6.5 5 9.5 10 3"/></svg>
           </div>
-          <span class="text-[13px] font-bold" :class="isLoading ? 'text-blue-600 dark:text-blue-400' : 'text-gray-700 dark:text-gray-200'">{{ isLoading ? t('Reasoning') + '...' : t('Reasoning completed') }}</span>
+          <span class="text-[13px] font-bold" :class="isLoading ? 'text-blue-600 dark:text-blue-400' : lastTurnHadError ? 'text-amber-600 dark:text-amber-400' : 'text-gray-700 dark:text-gray-200'">{{ isLoading ? t('Reasoning') + '...' : (lastTurnHadError ? t('Reasoning failed') : t('Reasoning completed')) }}</span>
         </div>
         <button @click="handleClose" class="flex size-7 items-center justify-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors">
           <XIcon :size="14" class="text-gray-400 dark:text-gray-500" />
@@ -257,11 +260,12 @@ export interface ActivityItem {
   collapsed?: boolean;
 }
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   items: ActivityItem[];
   plan?: PlanEventData;
   isLoading: boolean;
-}>();
+  lastTurnHadError?: boolean;
+}>(), { lastTurnHadError: false });
 
 const emit = defineEmits<{
   (e: 'toolClick', tool: ToolContent): void;

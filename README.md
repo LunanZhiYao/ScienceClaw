@@ -16,7 +16,7 @@ ScienceClaw is a personal research assistant built with [LangChain DeepAgents](h
 
 ---
 
-<video src="https://github.com/user-attachments/assets/c0e2f043-c515-4288-b29e-4c83f0a3c348" controls width="800" autoplay muted loop></video>
+<video src="https://github.com/user-attachments/assets/2680110c-e9f6-4007-9c56-b923c35f9992" controls width="800" autoplay muted loop></video>
 
 [Why ScienceClaw](#why-scienceclaw) · [Architecture](#architecture) · [News](#news) · [Quick Start](#quick-start) · [Demo](#demo) · [Free API Credits](#free-api-credits) · [Tools & Skills](#tools-skills) · [Features](#practical-features) · [Project Structure](#project-structure) · [Commands](#commands) · [Community](#community) · [Acknowledgements](#acknowledgements)
 
@@ -148,7 +148,7 @@ docker compose up -d --build
 
 ## 🎬 Demo
 
-<video src="https://github.com/user-attachments/assets/51b6ed6a-9208-42ff-b603-922db45acf9f" controls width="800" autoplay muted loop></video>
+<video src="https://github.com/user-attachments/assets/9cf07107-4820-4a0e-af3d-e95a17417156" controls width="800" autoplay muted loop></video>
 
 ---
 
@@ -398,4 +398,6 @@ ScienceClaw is built on the shoulders of excellent open-source projects. We woul
 - [Shaoling Lin](https://github.com/SharryLin)
 - [Songsong Lei](https://github.com/slei)
 - [Zhidong Zhang](https://github.com/mumudd)
+
+**Technical Support:** NLP Group, Institute of Automation, Chinese Academy of Sciences
 

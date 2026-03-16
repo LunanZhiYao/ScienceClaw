@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1.4
 # Use Node.js as base image
 FROM node:18-alpine AS build-stage
 
@@ -7,8 +8,9 @@ WORKDIR /app
 # Copy package.json and package-lock.json files
 COPY package*.json ./
 
-# Install project dependencies
-RUN npm ci
+# Install project dependencies (BuildKit npm cache)
+RUN --mount=type=cache,target=/root/.npm,sharing=locked \
+    npm ci
 
 # Copy project files
 COPY . .

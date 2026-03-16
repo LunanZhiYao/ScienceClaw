@@ -103,14 +103,18 @@
               <div
                 @click="showActivityForTurn(getProcessTurnIndex(index))"
                 class="process-indicator flex items-center gap-2.5 px-3.5 py-2 rounded-xl cursor-pointer transition-all duration-200 select-none group/proc border"
-                :class="isLoading && index === groupedMessages.length - 1
+                :class="isLoading && index === lastProcessGroupIndex
                   ? 'bg-gradient-to-r from-blue-50/80 to-indigo-50/60 dark:from-blue-950/30 dark:to-indigo-950/20 border-blue-200/50 dark:border-blue-800/30 shadow-sm shadow-blue-500/5 hover:shadow-md hover:shadow-blue-500/10'
                   : 'bg-white dark:bg-gray-800/50 border-gray-100 dark:border-gray-700/50 hover:border-gray-200 dark:hover:border-gray-600 hover:shadow-sm'"
               >
                 <!-- Spinning ring when running -->
-                <div v-if="isLoading && index === groupedMessages.length - 1" class="relative size-4 flex-shrink-0">
+                <div v-if="isLoading && index === lastProcessGroupIndex" class="relative size-4 flex-shrink-0">
                   <div class="absolute inset-0 rounded-full border-2 border-blue-200 dark:border-blue-800"></div>
                   <div class="absolute inset-0 rounded-full border-2 border-blue-500 border-t-transparent animate-spin"></div>
+                </div>
+                <!-- Failed: amber circle -->
+                <div v-else-if="lastTurnHadError && index === lastProcessGroupIndex" class="size-4 rounded-full bg-amber-400 flex items-center justify-center flex-shrink-0 shadow-sm shadow-amber-400/30">
+                  <svg class="size-2.5 text-white" viewBox="0 0 16 16" fill="currentColor"><path fill-rule="evenodd" d="M8 16A8 8 0 108 0a8 8 0 000 16zM7.25 4.75a.75.75 0 011.5 0v3.5a.75.75 0 01-1.5 0v-3.5zM8 11a1 1 0 100-2 1 1 0 000 2z"/></svg>
                 </div>
                 <!-- Completed: gradient check circle -->
                 <div v-else class="size-4 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center flex-shrink-0 shadow-sm shadow-emerald-400/30">
@@ -119,17 +123,19 @@
 
                 <!-- Title -->
                 <span class="text-[13px] font-semibold transition-colors"
-                  :class="isLoading && index === groupedMessages.length - 1
+                  :class="isLoading && index === lastProcessGroupIndex
                     ? 'text-blue-600 dark:text-blue-400'
-                    : 'text-gray-500 dark:text-gray-400 group-hover/proc:text-gray-700 dark:group-hover/proc:text-gray-200'"
+                    : lastTurnHadError && index === lastProcessGroupIndex
+                      ? 'text-amber-600 dark:text-amber-400'
+                      : 'text-gray-500 dark:text-gray-400 group-hover/proc:text-gray-700 dark:group-hover/proc:text-gray-200'"
                 >
-                  {{ isLoading && index === groupedMessages.length - 1 ? t('Reasoning') + '...' : t('Reasoning completed') }}
+                  {{ isLoading && index === lastProcessGroupIndex ? t('Reasoning') + '...' : (lastTurnHadError && index === lastProcessGroupIndex ? t('Reasoning failed') : t('Reasoning completed')) }}
                 </span>
 
                 <!-- Tool count badge -->
                 <span v-if="(group.messages || []).filter(m => m.type === 'tool').length > 0"
                   class="text-[10px] font-bold px-2 py-0.5 rounded-full tabular-nums"
-                  :class="isLoading && index === groupedMessages.length - 1
+                  :class="isLoading && index === lastProcessGroupIndex
                     ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-300'
                     : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'"
                 >
@@ -142,7 +148,7 @@
             </div>
             <ChatMessage v-else-if="group.type === 'single' && group.message" :message="group.message"
               @toolClick="handleToolClick" @suggestionClick="handleSuggestionClick" @convertToPdf="handleConvertToPdf" :mode="mode"
-              :isLast="index === groupedMessages.length - 1" :isLoading="isLoading" />
+              :isLast="index === lastProcessGroupIndex" :isLoading="isLoading" />
           </template>
 
           <!-- Loading indicator -->
@@ -216,6 +222,7 @@
         :items="displayActivityItems"
         :plan="displayActivityPlan"
         :isLoading="isLoading && selectedActivityTurn === -1"
+        :lastTurnHadError="lastTurnHadError"
         @toolClick="handleToolClick"
         @close="() => {}"
       />
@@ -344,6 +351,15 @@ const {
 
 const { groupedMessages } = useMessageGrouper(messages);
 
+// 最后一个 process 组的索引（推理失败时会先 push 一条 assistant 消息，此时最后一组不是 process，需用此判断当前轮次的 process 组）
+const lastProcessGroupIndex = computed(() => {
+  const groups = groupedMessages.value;
+  for (let i = groups.length - 1; i >= 0; i--) {
+    if (groups[i].type === 'process') return i;
+  }
+  return -1;
+});
+
 const displayActivityItems = computed(() => {
   if (selectedActivityTurn.value >= 0 && selectedActivityTurn.value < activitySnapshots.value.length) {
     return activitySnapshots.value[selectedActivityTurn.value].items;
@@ -366,6 +382,9 @@ const savingSkill = ref(false);
 const pendingToolSave = ref<string | null>(null);
 const pendingToolReplaces = ref<string | null>(null);
 const savingTool = ref(false);
+
+// 上一轮是否因报错结束（用于显示「推理失败」而非「推理完成」）
+const lastTurnHadError = ref(false);
 
 // Non-state refs that don't need reset
 const toolPanel = ref<InstanceType<typeof ToolPanel>>()
@@ -730,7 +749,17 @@ const handleDoneEvent = (doneData: DoneEventData) => {
 
 // Handle error event
 const handleErrorEvent = (errorData: ErrorEventData) => {
+  lastTurnHadError.value = true;
   isLoading.value = false;
+  // 防御性：将当前 plan 中 running/in_progress 步骤标为 failed，避免任务进度一直旋转
+  if (plan.value?.steps?.length) {
+    for (const step of plan.value.steps) {
+      if (step.status === 'running' || step.status === 'in_progress') {
+        step.status = 'failed';
+      }
+    }
+    plan.value = { ...plan.value };
+  }
   messages.value.push({
     type: 'assistant',
     content: {
@@ -868,6 +897,7 @@ const chat = async (message: string = '', files: FileInfo[] = [], reconnect: boo
     pendingToolCallIds.value = [];
 
     if (message.trim()) {
+      lastTurnHadError.value = false;
       plan.value = {
         event_id: '',
         timestamp: Math.floor(Date.now() / 1000),

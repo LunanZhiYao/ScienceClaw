@@ -1,10 +1,9 @@
+# BuildKit 用于 Dockerfile 中 apt/pip/npm 构建缓存，建议先执行: export DOCKER_BUILDKIT=1
 services:
   sandbox:
     build:
       context: ./ScienceClaw/sandbox
       dockerfile: Dockerfile.china
-      additional_contexts:
-        websearch: ./ScienceClaw/websearch
     image: scienceclaw-sandbox:local
     security_opt:
       - seccomp:unconfined
@@ -78,8 +77,6 @@ services:
     build:
       context: ./ScienceClaw/backend
       dockerfile: Dockerfile.china
-      additional_contexts:
-        websearch: ./ScienceClaw/websearch
     image: scienceclaw-backend:local
     volumes:
       - ./ScienceClaw/backend:/app/backend

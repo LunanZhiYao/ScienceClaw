@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1.4
 FROM python:3.12-slim
 
 WORKDIR /search
@@ -5,8 +6,9 @@ WORKDIR /search
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 
-# Install Python dependencies
-RUN pip install --no-cache-dir \
+# Install Python dependencies (BuildKit cache)
+RUN --mount=type=cache,target=/root/.cache/pip,sharing=locked \
+    pip install \
     "crawl4ai" \
     fastapi \
     "uvicorn[standard]" \
@@ -17,8 +19,10 @@ RUN pip install --no-cache-dir \
     markdown \
     beautifulsoup4
 
-# Install Playwright Chromium browser + system deps
-RUN python -m playwright install --with-deps chromium
+# Install Playwright Chromium browser + system deps (apt cache for --with-deps)
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    python -m playwright install --with-deps chromium
 
 # Copy websearch source code
 COPY . /search/

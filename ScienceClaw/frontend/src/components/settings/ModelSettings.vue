@@ -281,14 +281,27 @@
                     {{ t('Context Window') }}
                     <span class="text-[10px] text-[var(--text-tertiary)] font-normal ml-auto">{{ t('Auto-detected if empty') }}</span>
                 </label>
-                <input 
-                v-model.number="form.context_window" 
-                type="number"
-                min="1024"
-                step="1024"
-                class="flex h-9 w-full rounded-md border border-[var(--border-main)] bg-[var(--fill-input-chat)] px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-[var(--text-disable)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--border-dark)] disabled:cursor-not-allowed disabled:opacity-50 font-mono"
-                :placeholder="t('e.g. 131072')"
-                />
+                <div class="flex gap-2">
+                    <input 
+                    v-model.number="form.context_window" 
+                    type="number"
+                    min="1024"
+                    step="1024"
+                    class="flex h-9 w-full rounded-md border border-[var(--border-main)] bg-[var(--fill-input-chat)] px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-[var(--text-disable)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--border-dark)] disabled:cursor-not-allowed disabled:opacity-50 font-mono"
+                    :placeholder="t('e.g. 131072')"
+                    />
+                    <button
+                        type="button"
+                        :disabled="detecting || !form.model_name"
+                        @click="detectCtxWindow"
+                        class="flex-shrink-0 h-9 px-3 rounded-md border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400 text-xs font-medium hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5"
+                        :title="t('Detect')"
+                    >
+                        <Loader2 v-if="detecting" class="size-3.5 animate-spin" />
+                        <Radar v-else class="size-3.5" />
+                        {{ t('Detect') }}
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -319,13 +332,13 @@
 <script setup lang="ts">
 import { ref, onMounted, reactive, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { Plus, Pencil, Trash2, Loader2, Box, CheckCircle2, ShieldCheck, Globe, Key, Gift, Sparkles, ExternalLink } from 'lucide-vue-next';
+import { Plus, Pencil, Trash2, Loader2, Box, CheckCircle2, ShieldCheck, Globe, Key, Gift, Sparkles, ExternalLink, Radar } from 'lucide-vue-next';
 import ProviderIcon from '../icons/ProviderIcon.vue';
 import { 
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter 
 } from '@/components/ui/dialog';
 import { 
-  listModels, createModel, updateModel, deleteModel, 
+  listModels, createModel, updateModel, deleteModel, detectContextWindow,
   type ModelConfig 
 } from '@/api/models';
 import { showSuccessToast, showErrorToast } from '@/utils/toast';
@@ -335,6 +348,7 @@ const { t } = useI18n();
 const models = ref<ModelConfig[]>([]);
 const loading = ref(false);
 const saving = ref(false);
+const detecting = ref(false);
 const isEditOpen = ref(false);
 const editingModel = ref<ModelConfig | null>(null);
 
@@ -429,6 +443,30 @@ const saveModel = async () => {
     }
   } finally {
     saving.value = false;
+  }
+};
+
+const detectCtxWindow = async () => {
+  if (!form.model_name) {
+    showErrorToast(t('Please enter Model ID first'));
+    return;
+  }
+  detecting.value = true;
+  try {
+    const ctxWindow = await detectContextWindow({
+      provider: form.provider,
+      base_url: form.base_url || undefined,
+      api_key: form.api_key || undefined,
+      model_name: form.model_name,
+      model_id: editingModel.value?.id,
+    });
+    form.context_window = ctxWindow;
+    showSuccessToast(t('Detected context window') + `: ${ctxWindow.toLocaleString()}`);
+  } catch (err: any) {
+    const detail = err.response?.data?.detail;
+    showErrorToast(detail || t('Failed to detect context window'));
+  } finally {
+    detecting.value = false;
   }
 };
 

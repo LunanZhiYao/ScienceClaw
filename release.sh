@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# 启用 BuildKit（Dockerfile 中 apt/pip/npm 缓存挂载需要）
+export DOCKER_BUILDKIT=1
+
 # 构建 ScienceClaw 下所有带 Dockerfile 的子目录镜像
 # 镜像名 = 文件夹名，版本 = 当前日期
 # 支持多平台: linux/amd64, linux/arm64
