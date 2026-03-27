@@ -8,6 +8,7 @@ context window 解析优先级：
 """
 from __future__ import annotations
 
+import os
 import json
 from typing import Any, Dict, List, Optional
 
@@ -277,6 +278,10 @@ def _flatten_content(msg: BaseMessage) -> BaseMessage:
 
 
 _THINKING_MODEL_PATTERNS = ("minimax", "kimi", "moonshot")
+_TEMPERATURE = os.environ.get("MODEL_TEMPERATURE", 0.2)
+_TOP_P = os.environ.get("MODEL_TOP_P", 0.95)
+_TOP_K = os.environ.get("MODEL_TOP_K", 20)
+_DEFAULT_ENABLE_THINKING = os.environ.get("MODEL_ENABLE_THINKING", True)
 
 
 class _SafeChatOpenAI(ChatOpenAI):
@@ -398,11 +403,31 @@ def get_llm_model(
                    为 False 时不传 stream_options（某些 API 在非流式调用时不接受该参数）。
     """
     effective_max_tokens = max_tokens_override or settings.max_tokens
+    temperature = float(getattr(settings, "temperature", _TEMPERATURE) or _TEMPERATURE)
+    top_p = float(getattr(settings, "top_p", _TOP_P) or _TOP_P)
+    top_k = int(getattr(settings, "top_k", _TOP_K) or _TOP_K)
+    enable_thinking = bool(
+        getattr(settings, "enable_thinking", _DEFAULT_ENABLE_THINKING)
+        if hasattr(settings, "enable_thinking")
+        else _DEFAULT_ENABLE_THINKING
+    )
 
     # stream_options 仅在流式调用时传递，非流式调用时 API 会拒绝该参数
     extra_kwargs: Dict[str, Any] = {}
     if streaming:
         extra_kwargs["stream_options"] = {"include_usage": True}
+    extra_kwargs["extra_body"] = {
+        "top_k": top_k,
+        "chat_template_kwargs": {"enable_thinking": enable_thinking},
+    }
+
+    logger.info(
+        "[Engine] LLM sampling params: streaming={} temperature={} top_p={} extra_body={}",
+        streaming,
+        temperature,
+        top_p,
+        extra_kwargs.get("extra_body"),
+    )
 
     if config:
         model_name = config.get("model_name", settings.model_ds_name)
@@ -428,6 +453,8 @@ def get_llm_model(
             base_url=config.get("base_url") or settings.model_ds_base_url,
             api_key=config.get("api_key") or settings.model_ds_api_key,
             max_tokens=effective_max_tokens,
+            temperature=temperature,
+            top_p=top_p,
             max_retries=3,
             request_timeout=120,
             model_kwargs=extra_kwargs,
@@ -443,6 +470,8 @@ def get_llm_model(
         base_url=settings.model_ds_base_url,
         api_key=settings.model_ds_api_key,
         max_tokens=effective_max_tokens,
+        temperature=temperature,
+        top_p=top_p,
         max_retries=3,
         request_timeout=120,
         model_kwargs=extra_kwargs,

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import time
-import uuid
 import secrets
 from typing import Any, Optional
 from datetime import datetime
@@ -13,6 +12,11 @@ import bcrypt
 from backend.mongodb.db import db
 from backend.config import settings
 from backend.user.dependencies import get_current_user, require_user, User
+
+from backend.services.erp import login_by_work_code
+from backend.services.auth import register_user
+
+from backend.services.auth import find_or_register
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -115,6 +119,65 @@ async def check_default_password() -> ApiResponse:
     is_default = bcrypt.checkpw(default_pwd.encode("utf-8"), stored_hash)
     return ApiResponse(data={"is_default": is_default, "username": username, "password": default_pwd if is_default else None})
 
+@router.get("/sso-login", response_model=ApiResponse)
+async def sso_login(request: Request,response: Response) :
+#     获取请求头中的workCode
+    workCode = request.headers.get("workCode")
+    if not workCode:
+        return ApiResponse(code=401, msg="workCode is required")
+    user_info = login_by_work_code(workCode)
+    if not user_info:
+        return ApiResponse(code=401, msg="Failed to login user")
+
+    # ERP 返回是 dict，兼容 userid/userId/workCode 字段
+    db_user_name = user_info.get("userid")
+    db_fullname = user_info.get("name")
+    db_email = user_info.get("email")
+    user_doc = await find_or_register(str(db_user_name), db_fullname,db_email,"LNit@2016")
+
+    # Create session tokens (access_token is a session id)
+    access_token = secrets.token_urlsafe(32)
+    refresh_token = secrets.token_urlsafe(48)
+    expires_at = int(time.time()) + settings.session_max_age
+    refresh_expires_at = int(time.time()) + settings.session_max_age * 4
+
+    await db.get_collection("user_sessions").insert_one({
+        "_id": access_token,
+        "user_id": str(user_doc["_id"]),
+        "username": user_doc["username"],
+        "role": user_doc.get("role", "user"),
+        "created_at": int(time.time()),
+        "expires_at": expires_at,
+        "refresh_token": refresh_token,
+        "refresh_expires_at": refresh_expires_at,
+    })
+
+    now = int(time.time())
+    await db.get_collection("users").update_one(
+        {"_id": str(user_doc["_id"])},
+        {"$set": {"last_login_at": datetime.fromtimestamp(now).isoformat(), "updated_at": now}},
+    )
+
+    # Set cookie
+    response.set_cookie(
+        key=settings.session_cookie,
+        value=access_token,
+        max_age=settings.session_max_age,
+        httponly=True,
+        secure=settings.https_only,
+        samesite="lax"
+    )
+
+    return ApiResponse(
+        data=TokenResponse(
+            user=_user_doc_to_auth_user(user_doc),
+            access_token=access_token,
+            refresh_token=refresh_token,
+            token_type="Bearer",
+        ).model_dump()
+    )
+
+
 
 @router.post("/login", response_model=ApiResponse)
 async def login(body: LoginRequest, response: Response):
@@ -175,62 +238,6 @@ async def login(body: LoginRequest, response: Response):
         ).model_dump()
     )
 
-@router.post("/register", response_model=ApiResponse)
-async def register(body: RegisterRequest):
-    username = (body.username or body.email or "").strip()
-    if not username:
-        return ApiResponse(code=400, msg="Username/email required")
-
-    existing = await db.get_collection("users").find_one({"username": username})
-    if existing:
-        return ApiResponse(code=400, msg="Username already exists")
-
-    salt = bcrypt.gensalt()
-    hashed = bcrypt.hashpw(body.password.encode('utf-8'), salt).decode('utf-8')
-    
-    user_id = str(uuid.uuid4())
-    now = int(time.time())
-    
-    new_user = {
-        "_id": user_id,
-        "username": username,
-        "password_hash": hashed,
-        "fullname": body.fullname or username,
-        "email": body.email,
-        "role": "user",
-        "is_active": True,
-        "created_at": now,
-        "updated_at": now,
-        "last_login_at": None,
-    }
-    
-    await db.get_collection("users").insert_one(new_user)
-
-    access_token = secrets.token_urlsafe(32)
-    refresh_token = secrets.token_urlsafe(48)
-    expires_at = int(time.time()) + settings.session_max_age
-    refresh_expires_at = int(time.time()) + settings.session_max_age * 4
-    await db.get_collection("user_sessions").insert_one(
-        {
-            "_id": access_token,
-            "user_id": user_id,
-            "username": username,
-            "role": "user",
-            "created_at": int(time.time()),
-            "expires_at": expires_at,
-            "refresh_token": refresh_token,
-            "refresh_expires_at": refresh_expires_at,
-        }
-    )
-
-    return ApiResponse(
-        data=TokenResponse(
-            user=_user_doc_to_auth_user(new_user),
-            access_token=access_token,
-            refresh_token=refresh_token,
-            token_type="Bearer",
-        ).model_dump()
-    )
 
 @router.get("/status", response_model=ApiResponse)
 async def get_auth_status(current_user: Optional[User] = Depends(get_current_user)) -> ApiResponse:

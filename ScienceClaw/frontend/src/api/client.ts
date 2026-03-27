@@ -1,8 +1,8 @@
 // Backend API client configuration
 import axios, { AxiosError } from 'axios';
 import { fetchEventSource, EventSourceMessage } from '@microsoft/fetch-event-source';
-import { router } from '@/main';
-import { clearStoredTokens, getStoredToken, getStoredRefreshToken, storeToken } from './auth';
+import { clearStoredTokens, getStoredToken, getStoredRefreshToken, storeToken } from './token';
+import router from "@/router";
 
 // API configuration
 export const API_CONFIG = {

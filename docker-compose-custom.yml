@@ -1,10 +1,9 @@
-# BuildKit 用于 Dockerfile 中 apt/pip/npm 构建缓存，建议先执行: export DOCKER_BUILDKIT=1
 services:
   sandbox:
     build:
       context: ./ScienceClaw/sandbox
       dockerfile: Dockerfile.china
-    image: scienceclaw-sandbox:local
+    image: scienceclaw-sandbox:custom
     security_opt:
       - seccomp:unconfined
     extra_hosts:
@@ -30,10 +29,10 @@ services:
       retries: 30
 
   mongo:
-    image: scienceclaw-mongo:local
     build:
-      context: ScienceClaw/mongo
+      context: ./ScienceClaw/mongo
       dockerfile: Dockerfile.china
+    image: scienceclaw-mongo:custom
     environment:
       MONGO_INITDB_ROOT_USERNAME: scienceone
       MONGO_INITDB_ROOT_PASSWORD: Yp51Bi1eEjC77sAt
@@ -44,18 +43,17 @@ services:
     restart: unless-stopped
 
   redis:
-    image: scienceclaw-redis:local
     build:
-      context: ScienceClaw/redis
+      context: ./ScienceClaw/redis
       dockerfile: Dockerfile.china
+    image: scienceclaw-redis:custom
     restart: unless-stopped
 
-  # ── SearXNG 搜索引擎（websearch 服务的依赖） ──
   searxng:
-    image: scienceclaw-searxng:local
     build:
-      context: ScienceClaw/searxng
+      context: ./ScienceClaw/searxng
       dockerfile: Dockerfile.china
+    image: scienceclaw-searxng:custom
     environment:
       SEARXNG_BASE_URL: http://localhost:8080/
       SEARXNG_LIMITER: "false"
@@ -66,12 +64,11 @@ services:
       - "26080:8080"
     restart: unless-stopped
 
-  # ── 网页搜索 + 爬取服务（替代 Tavily） ──
   websearch:
     build:
       context: ./ScienceClaw/websearch
       dockerfile: Dockerfile.china
-    image: scienceclaw-websearch:local
+    image: scienceclaw-websearch:custom
     environment:
       SEARXNG_HOST: searxng
       SEARXNG_PORT: 8080
@@ -90,7 +87,7 @@ services:
     build:
       context: ./ScienceClaw/backend
       dockerfile: Dockerfile.china
-    image: scienceclaw-backend:local
+    image: scienceclaw-backend:custom
     volumes:
       - ./ScienceClaw/backend:/app/backend
       - ./ScienceClaw/backend/builtin_skills:/app/builtin_skills:ro
@@ -121,11 +118,8 @@ services:
       MONGODB_PASSWORD: Yp51Bi1eEjC77sAt
       TASK_SERVICE_API_KEY: ${TASK_SERVICE_API_KEY:-}
       WEBSEARCH_API_KEY: "fdsfkjikmii"
-      # 网页搜索服务地址（Docker 内部通信）
       WEBSEARCH_BASE_URL: http://websearch:8068
       WEBSEARCH_URL: http://websearch:8068
-      # 诊断模式：记录每步 LLM 调用的完整上下文，用于质量分析（设为空或删除此行关闭）
-      DIAGNOSTIC_MODE: "1"
       IM_ENABLED: "true"
       IM_RESPONSE_TIMEOUT: 300
       IM_MAX_MESSAGE_LENGTH: 4000
@@ -158,12 +152,13 @@ services:
       timeout: 5s
       retries: 30
 
-  # ── 任务调度服务（Task Service）──
   scheduler_api:
     build:
-      context: ScienceClaw/task-service
+      context: ./ScienceClaw/task-service
       dockerfile: Dockerfile.china
-    image: scienceclaw-task-service:local
+    image: scienceclaw-task-service:custom
+    volumes:
+      - ./ScienceClaw/task-service:/app
     environment:
       TZ: Asia/Shanghai
       DISPLAY_TIMEZONE: ${DISPLAY_TIMEZONE:-Asia/Shanghai}
@@ -191,8 +186,10 @@ services:
         condition: service_started
 
   celery_worker:
-    image: scienceclaw-task-service:local
+    image: scienceclaw-task-service:custom
     pull_policy: never
+    volumes:
+      - ./ScienceClaw/task-service:/app
     environment:
       TZ: Asia/Shanghai
       MONGODB_HOST: mongo
@@ -214,8 +211,10 @@ services:
         condition: service_started
 
   celery_beat:
-    image: scienceclaw-task-service:local
+    image: scienceclaw-task-service:custom
     pull_policy: never
+    volumes:
+      - ./ScienceClaw/task-service:/app
     environment:
       TZ: Asia/Shanghai
       MONGODB_HOST: mongo
@@ -232,28 +231,26 @@ services:
       redis:
         condition: service_started
 
+  # 前端采用“重启即重建产物”的运行方式：
+  # 修改代码后 `docker compose -f docker-compose-custom.yml restart frontend` 即可生效
   frontend:
     image: swr.cn-north-4.myhuaweicloud.com/claw/node:20-bookworm-slim
     working_dir: /app
     environment:
       BACKEND_URL: http://backend:8000
-      # 定时任务服务：Vite 代理 /task-service 时转发到该地址（容器内使用服务名）
       TASK_SERVICE_URL: http://scheduler_api:8001
-      # 任务执行时间展示时区，默认北京时间（与 DISPLAY_TIMEZONE 一致）
       VITE_DISPLAY_TIMEZONE: ${DISPLAY_TIMEZONE:-Asia/Shanghai}
       NPM_CONFIG_REGISTRY: https://registry.npmmirror.com
       NPM_CONFIG_CACHE: /npm-cache
-      CHOKIDAR_USEPOLLING: "true"
-      CHOKIDAR_INTERVAL: "300"
       TZ: Asia/Shanghai
     volumes:
       - ./ScienceClaw/frontend:/app
       - scienceclaw_frontend_node_modules:/app/node_modules
       - scienceclaw_frontend_npm_cache:/npm-cache
     ports:
-      - "5173:5173"
+      - "5173:4173"
     command: >
-      sh -lc "npm install --no-fund --no-audit && npm run dev -- --host 0.0.0.0 --port 5173"
+      sh -lc "npm install --no-fund --no-audit && npm run build && npm run preview -- --host 0.0.0.0 --port 4173"
     restart: unless-stopped
     depends_on:
       backend:

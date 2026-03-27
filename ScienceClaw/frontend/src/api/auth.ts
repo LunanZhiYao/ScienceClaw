@@ -1,5 +1,19 @@
 // Authentication API service
 import { apiClient, ApiResponse } from './client';
+import {
+  getStoredToken,
+  storeToken,
+  storeRefreshToken,
+  getStoredRefreshToken,
+  clearStoredTokens,
+} from './token';
+export {
+  getStoredToken,
+  storeToken,
+  storeRefreshToken,
+  getStoredRefreshToken,
+  clearStoredTokens,
+} from './token';
 
 /**
  * User role type
@@ -293,46 +307,6 @@ export function setAuthToken(token: string): void {
  */
 export function clearAuthToken(): void {
   delete apiClient.defaults.headers.Authorization;
-}
-
-/**
- * Get stored authentication token from localStorage
- * @returns Stored token or null
- */
-export function getStoredToken(): string | null {
-  return localStorage.getItem('access_token');
-}
-
-/**
- * Store authentication token in localStorage
- * @param token Token to store
- */
-export function storeToken(token: string): void {
-  localStorage.setItem('access_token', token);
-}
-
-/**
- * Store refresh token in localStorage
- * @param refreshToken Refresh token to store
- */
-export function storeRefreshToken(refreshToken: string): void {
-  localStorage.setItem('refresh_token', refreshToken);
-}
-
-/**
- * Get stored refresh token from localStorage
- * @returns Stored refresh token or null
- */
-export function getStoredRefreshToken(): string | null {
-  return localStorage.getItem('refresh_token');
-}
-
-/**
- * Clear stored tokens from localStorage
- */
-export function clearStoredTokens(): void {
-  localStorage.removeItem('access_token');
-  localStorage.removeItem('refresh_token');
 }
 
 /**
