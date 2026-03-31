@@ -22,20 +22,24 @@ from backend.services.auth import find_or_register
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
+
 class ApiResponse(BaseModel):
     code: int = Field(default=0, description="业务状态码，0 表示成功")
     msg: str = Field(default="ok", description="业务消息")
     data: Any = Field(default=None, description="返回数据")
 
+
 class LoginRequest(BaseModel):
     username: str
     password: str
+
 
 class RegisterRequest(BaseModel):
     fullname: str
     email: str
     password: str
     username: Optional[str] = None
+
 
 class AuthUser(BaseModel):
     id: str
@@ -46,6 +50,7 @@ class AuthUser(BaseModel):
     created_at: str = ""
     updated_at: str = ""
     last_login_at: Optional[str] = None
+
 
 class AuthStatusData(BaseModel):
     authenticated: bool
@@ -101,6 +106,7 @@ def _user_doc_to_auth_user(doc: dict[str, Any]) -> AuthUser:
         last_login_at=_to_str_ts(last_login_at) if last_login_at else None,
     )
 
+
 @router.get("/check-default-password", response_model=ApiResponse)
 async def check_default_password() -> ApiResponse:
     """Check whether the bootstrap admin account still uses the default password."""
@@ -119,12 +125,14 @@ async def check_default_password() -> ApiResponse:
         stored_hash = stored_hash.encode("utf-8")
 
     is_default = bcrypt.checkpw(default_pwd.encode("utf-8"), stored_hash)
-    return ApiResponse(data={"is_default": is_default, "username": username, "password": default_pwd if is_default else None})
+    return ApiResponse(
+        data={"is_default": is_default, "username": username, "password": default_pwd if is_default else None})
+
 
 @router.get("/sso-login", response_model=None)
 async def sso_login(request: Request, response: Response) -> Union[RedirectResponse, ApiResponse]:
     # 获取请求头中的 workCode
-    workCode = request.headers.get("workCode")
+    workCode = request.query_params.get("workCode")
     if not workCode:
         return ApiResponse(code=401, msg="workCode is required")
     user_info = login_by_work_code(workCode)
@@ -135,7 +143,7 @@ async def sso_login(request: Request, response: Response) -> Union[RedirectRespo
     db_user_name = user_info.get("userid")
     db_fullname = user_info.get("name")
     db_email = user_info.get("email")
-    user_doc = await find_or_register(str(db_user_name), db_fullname,db_email,"LNit@2016")
+    user_doc = await find_or_register(str(db_user_name), db_fullname, db_email, "LNit@2016")
 
     # Create session tokens (access_token is a session id)
     access_token = secrets.token_urlsafe(32)
@@ -196,18 +204,17 @@ async def sso_login(request: Request, response: Response) -> Union[RedirectRespo
     )
 
 
-
 @router.post("/login", response_model=ApiResponse)
 async def login(body: LoginRequest, response: Response):
     user_doc = await db.get_collection("users").find_one({"username": body.username})
     if not user_doc:
         return ApiResponse(code=401, msg="Invalid username or password")
-    
+
     # Check password
     stored_hash = user_doc["password_hash"]
     if isinstance(stored_hash, str):
         stored_hash = stored_hash.encode('utf-8')
-        
+
     if not bcrypt.checkpw(body.password.encode('utf-8'), stored_hash):
         return ApiResponse(code=401, msg="Invalid username or password")
 
@@ -219,7 +226,7 @@ async def login(body: LoginRequest, response: Response):
     refresh_token = secrets.token_urlsafe(48)
     expires_at = int(time.time()) + settings.session_max_age
     refresh_expires_at = int(time.time()) + settings.session_max_age * 4
-    
+
     await db.get_collection("user_sessions").insert_one({
         "_id": access_token,
         "user_id": str(user_doc["_id"]),
@@ -282,7 +289,8 @@ async def get_auth_status(current_user: Optional[User] = Depends(get_current_use
         return ApiResponse(data=AuthStatusData(authenticated=False, auth_provider=auth_provider).model_dump())
 
     user_doc = await db.get_collection("users").find_one({"_id": str(current_user.id)})
-    user = _user_doc_to_auth_user(user_doc or {"_id": current_user.id, "username": current_user.username, "email": "", "role": current_user.role})
+    user = _user_doc_to_auth_user(
+        user_doc or {"_id": current_user.id, "username": current_user.username, "email": "", "role": current_user.role})
     return ApiResponse(data=AuthStatusData(authenticated=True, auth_provider=auth_provider, user=user).model_dump())
 
 
@@ -354,13 +362,16 @@ async def change_fullname(body: ChangeFullnameRequest, current_user: User = Depe
         {"$set": {"fullname": fullname, "updated_at": int(time.time())}},
     )
     user_doc = await db.get_collection("users").find_one({"_id": str(current_user.id)})
-    return ApiResponse(data=_user_doc_to_auth_user(user_doc or {"_id": current_user.id, "fullname": fullname, "email": "", "role": current_user.role}).model_dump())
+    return ApiResponse(data=_user_doc_to_auth_user(
+        user_doc or {"_id": current_user.id, "fullname": fullname, "email": "",
+                     "role": current_user.role}).model_dump())
+
 
 @router.post("/logout", response_model=ApiResponse)
 async def logout(request: Request, response: Response):
     session_id = request.cookies.get(settings.session_cookie)
     if session_id:
         await db.get_collection("user_sessions").delete_one({"_id": session_id})
-    
+
     response.delete_cookie(settings.session_cookie)
     return ApiResponse(data={"ok": True})

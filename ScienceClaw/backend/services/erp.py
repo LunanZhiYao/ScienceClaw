@@ -77,10 +77,10 @@ def login_by_work_code(workCode: str) -> Any:
         raise HTTPException(status_code=400, detail="workCode is required")
 
     # 对齐 PHP 的 urldecode：'+' 会被解码为空格
-    decoded_work_code = unquote_plus(workCode)
+    decoded_work_code = workCode
     biz_params = {
         "workCode": decoded_work_code,
-        "type": "wap",
+        "type": "pc",
     }
     payload = _joint_params(biz_params, _ERP_METHOD_GET_USER_BY_WORK_CODE)
     payload_for_log = {
