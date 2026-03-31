@@ -34,8 +34,8 @@ services:
       dockerfile: Dockerfile.china
     image: scienceclaw-mongo:custom
     environment:
-      MONGO_INITDB_ROOT_USERNAME: scienceone
-      MONGO_INITDB_ROOT_PASSWORD: Yp51Bi1eEjC77sAt
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME:-scienceone}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD:?MONGO_INITDB_ROOT_PASSWORD is required}
     ports:
       - "27014:27017"
     volumes:
@@ -75,7 +75,7 @@ services:
       API_HOST: "0.0.0.0"
       API_PORT: 8068
       TZ: Asia/Shanghai
-      API_KEY: "fdsfkjikmii"
+      API_KEY: ${WEBSEARCH_API_KEY:?WEBSEARCH_API_KEY is required}
     ports:
       - "8068:8068"
     restart: unless-stopped
@@ -98,42 +98,42 @@ services:
       SANDBOX_REST_URL: http://sandbox:8080
       WORKSPACE_DIR: /home/scienceclaw
       DS_API_KEY: ${API_KEY:-}
-      DS_URL: ${API_BASE-https://api.deepseek.com/v1}
-      DS_MODEL: ${MODEL_NAME-deepseek-chat}
-      TEMPERATURE: ${TEMPERATURE-0.7}
-      MAX_TOKENS: ${MAX_TOKENS-2000}
-      LOG_LEVEL: ${LOG_LEVEL-INFO}
+      DS_URL: ${DS_URL:-https://api.deepseek.com/v1}
+      DS_MODEL: ${DS_MODEL:-deepseek-chat}
+      TEMPERATURE: ${TEMPERATURE:-0.7}
+      MAX_TOKENS: ${MAX_TOKENS:-2000}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
       FILE_DOWNLOAD_ALLOWED_PREFIXES: /tmp,/app,/home/scienceclaw
       TZ: Asia/Shanghai
       AUTH_PROVIDER: local
       BOOTSTRAP_ADMIN_ENABLED: "true"
-      BOOTSTRAP_ADMIN_USERNAME: admin
-      BOOTSTRAP_ADMIN_PASSWORD: admin123
-      BOOTSTRAP_ADMIN_FULLNAME: Administrator
-      BOOTSTRAP_ADMIN_EMAIL: admin@localhost
+      BOOTSTRAP_ADMIN_USERNAME: ${BOOTSTRAP_ADMIN_USERNAME:-admin}
+      BOOTSTRAP_ADMIN_PASSWORD: ${BOOTSTRAP_ADMIN_PASSWORD:?BOOTSTRAP_ADMIN_PASSWORD is required}
+      BOOTSTRAP_ADMIN_FULLNAME: ${BOOTSTRAP_ADMIN_FULLNAME:-Administrator}
+      BOOTSTRAP_ADMIN_EMAIL: ${BOOTSTRAP_ADMIN_EMAIL:-admin@localhost}
       BOOTSTRAP_UPDATE_ADMIN_PASSWORD: "true"
       MONGODB_HOST: mongo
       MONGODB_PORT: 27017
-      MONGODB_USER: scienceone
-      MONGODB_PASSWORD: Yp51Bi1eEjC77sAt
+      MONGODB_USER: ${MONGO_INITDB_ROOT_USERNAME:-scienceone}
+      MONGODB_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD:?MONGO_INITDB_ROOT_PASSWORD is required}
       TASK_SERVICE_API_KEY: ${TASK_SERVICE_API_KEY:-}
-      WEBSEARCH_API_KEY: "fdsfkjikmii"
+      WEBSEARCH_API_KEY: ${WEBSEARCH_API_KEY:?WEBSEARCH_API_KEY is required}
       WEBSEARCH_BASE_URL: http://websearch:8068
       WEBSEARCH_URL: http://websearch:8068
       IM_ENABLED: "true"
       IM_RESPONSE_TIMEOUT: 300
       IM_MAX_MESSAGE_LENGTH: 4000
       LARK_ENABLED: "true"
-      LARK_APP_ID: ${LARK_APP_ID-}
-      LARK_APP_SECRET: ${LARK_APP_SECRET-}
-      ERP_BASE_URL: https://erp-test.shouhuisoft.com/api/open
-      ERP_APP_ID: demo
-      ERP_APP_SECRET: de1bded20bf755d10b5aba743a65e231
-      ERP_APPLICATION_ID: 120201165
-      MODEL_TEMPERATURE: 0.2
-      MODEL_TOP_P: 0.95
-      MODEL_TOP_K: 20
-      MODEL_ENABLE_THINKING: "false"
+      LARK_APP_ID: ${LARK_APP_ID:-}
+      LARK_APP_SECRET: ${LARK_APP_SECRET:-}
+      ERP_BASE_URL: ${ERP_BASE_URL:?ERP_BASE_URL is required}
+      ERP_APP_ID: ${ERP_APP_ID:?ERP_APP_ID is required}
+      ERP_APP_SECRET: ${ERP_APP_SECRET:?ERP_APP_SECRET is required}
+      ERP_APPLICATION_ID: ${ERP_APPLICATION_ID:-120201165}
+      MODEL_TEMPERATURE: ${MODEL_TEMPERATURE:-0.2}
+      MODEL_TOP_P: ${MODEL_TOP_P:-0.95}
+      MODEL_TOP_K: ${MODEL_TOP_K:-20}
+      MODEL_ENABLE_THINKING: ${MODEL_ENABLE_THINKING:-false}
       FRONTEND_ENDPOINT: http://localhost:5173
       WATCHFILES_FORCE_POLLING: "1"
     ports:
@@ -167,14 +167,14 @@ services:
       MONGODB_HOST: mongo
       MONGODB_PORT: 27017
       MONGODB_DB: ai_agent
-      MONGODB_USER: scienceone
-      MONGODB_PASSWORD: Yp51Bi1eEjC77sAt
+      MONGODB_USER: ${MONGO_INITDB_ROOT_USERNAME:-scienceone}
+      MONGODB_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD:?MONGO_INITDB_ROOT_PASSWORD is required}
       REDIS_URL: redis://redis:6379/0
       CHAT_SERVICE_URL: http://backend:8000
       CHAT_SERVICE_API_KEY: ${TASK_SERVICE_API_KEY:-}
-      DS_API_KEY: ${API_KEY:-}
-      DS_URL: ${API_BASE:-https://api.deepseek.com/v1}
-      DS_MODEL: ${MODEL_NAME:-deepseek-chat}
+      DS_API_KEY: ${DS_API_KEY:-}
+      DS_URL: ${DS_URL:-https://api.deepseek.com/v1}
+      DS_MODEL: ${DS_MODEL:-deepseek-chat}
     ports:
       - "12002:8001"
     command: uvicorn app.main:app --host 0.0.0.0 --port 8001
@@ -197,8 +197,8 @@ services:
       MONGODB_HOST: mongo
       MONGODB_PORT: 27017
       MONGODB_DB: ai_agent
-      MONGODB_USER: scienceone
-      MONGODB_PASSWORD: Yp51Bi1eEjC77sAt
+      MONGODB_USER: ${MONGO_INITDB_ROOT_USERNAME:-scienceone}
+      MONGODB_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD:?MONGO_INITDB_ROOT_PASSWORD is required}
       REDIS_URL: redis://redis:6379/0
       CHAT_SERVICE_URL: http://backend:8000
       CHAT_SERVICE_API_KEY: ${TASK_SERVICE_API_KEY:-}
@@ -222,8 +222,8 @@ services:
       MONGODB_HOST: mongo
       MONGODB_PORT: 27017
       MONGODB_DB: ai_agent
-      MONGODB_USER: scienceone
-      MONGODB_PASSWORD: Yp51Bi1eEjC77sAt
+      MONGODB_USER: ${MONGO_INITDB_ROOT_USERNAME:-scienceone}
+      MONGODB_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD:?MONGO_INITDB_ROOT_PASSWORD is required}
       REDIS_URL: redis://redis:6379/0
     command: celery -A app.celery_app beat --loglevel=info
     restart: unless-stopped
