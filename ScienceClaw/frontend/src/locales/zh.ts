@@ -1,4 +1,5 @@
 export default {
+  'App Name': '研·千易',
   'Hello': '你好',
   'What can I do for you?': '今天想研究什么？',
   'What are you researching today?': '今天研究什么？',
@@ -54,7 +55,7 @@ export default {
   'ScienceClaw is using': 'ScienceClaw 正在使用',
   'Jump to live': '跳到实时',
   'Failed to load file content': '加载文件内容失败',
-  'Give ScienceClaw a task to work on...': '给 ScienceClaw 下达一个研究任务...',
+  'Give Yan·QianYi a task to work on...': '给 研·千易 下达一个研究任务...',
   // Shell tools
   'Executing command': '正在执行命令',
   'Viewing command output': '正在查看命令输出',

@@ -1,7 +1,7 @@
 <template>
   <div class="flex items-center">
     <span class="logo-text font-sans font-extrabold text-2xl tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-500 via-red-500 to-amber-500" style="background-size: 200% 100%;">
-      ScienceClaw
+      研·千易
     </span>
   </div>
 </template>

@@ -68,11 +68,11 @@
               </button>
 
               <!-- Default credentials hint -->
-              <div v-if="defaultCredentials" 
-                class="flex items-center gap-[8px] px-[14px] py-[10px] rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700/40 text-amber-700 dark:text-amber-300 text-[12px] leading-[18px]">
-                <Info :size="14" class="shrink-0 mt-[1px]" />
-                <span>{{ t('Default login') }}: {{ t('Username') }} <strong>{{ defaultCredentials.username }}</strong>，{{ t('Password') }} <strong>{{ defaultCredentials.password }}</strong></span>
-              </div>
+<!--              <div v-if="defaultCredentials" -->
+<!--                class="flex items-center gap-[8px] px-[14px] py-[10px] rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700/40 text-amber-700 dark:text-amber-300 text-[12px] leading-[18px]">-->
+<!--                <Info :size="14" class="shrink-0 mt-[1px]" />-->
+<!--                <span>{{ t('Default login') }}: {{ t('Username') }} <strong>{{ defaultCredentials.username }}</strong>，{{ t('Password') }} <strong>{{ defaultCredentials.password }}</strong></span>-->
+<!--              </div>-->
             </div>
           </div>
         </div>
@@ -211,14 +211,14 @@ onMounted(async () => {
   const authProvider = await getCachedAuthProvider()
   hasRegister.value = authProvider === 'password'
 
-  try {
-    const result = await checkDefaultPassword()
-    if (result.is_default && result.username && result.password) {
-      defaultCredentials.value = { username: result.username, password: result.password }
-    }
-  } catch {
-    // ignore
-  }
+  // try {
+  //   const result = await checkDefaultPassword()
+  //   if (result.is_default && result.username && result.password) {
+  //     defaultCredentials.value = { username: result.username, password: result.password }
+  //   }
+  // } catch {
+  //   // ignore
+  // }
 })
 
 // Expose clearForm method for parent component

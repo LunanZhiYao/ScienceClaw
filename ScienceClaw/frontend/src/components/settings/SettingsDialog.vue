@@ -93,11 +93,11 @@ const currentSubPage = ref<string | null>(null)
 // Tab configuration
 const tabs = computed<TabItem[]>(() => {
   const baseTabs: TabItem[] = [
-    {
-      id: 'account',
-      label: 'Account',
-      icon: UserRound
-    },
+    // {
+    //   id: 'account',
+    //   label: 'Account',
+    //   icon: UserRound
+    // },
     {
       id: 'personalization',
       label: 'Personalization',
@@ -118,21 +118,21 @@ const tabs = computed<TabItem[]>(() => {
       label: 'Tasks',
       icon: ListTodo
     },
-    {
-      id: 'statistics',
-      label: 'Statistics',
-      icon: BarChart3
-    },
-    {
-      id: 'notifications',
-      label: 'Notifications',
-      icon: Bell
-    },
-    {
-      id: 'im',
-      label: 'IM',
-      icon: Bot
-    }
+    // {
+    //   id: 'statistics',
+    //   label: 'Statistics',
+    //   icon: BarChart3
+    // },
+    // {
+    //   id: 'notifications',
+    //   label: 'Notifications',
+    //   icon: Bell
+    // },
+    // {
+    //   id: 'im',
+    //   label: 'IM',
+    //   icon: Bot
+    // }
   ]
   return baseTabs
 })

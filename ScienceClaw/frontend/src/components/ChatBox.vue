@@ -49,7 +49,7 @@
                     v-model="input"
                     @compositionstart="isComposing = true" @compositionend="isComposing = false"
                     @keydown="handleKeydown"
-                    :placeholder="t('Give ScienceClaw a task to work on...')"></textarea>
+                    :placeholder="t('Give Yan·QianYi a task to work on...')"></textarea>
             </div>
             <footer class="flex flex-row justify-between w-full px-3">
                 <div class="flex gap-2 pr-2 items-center">
@@ -64,7 +64,7 @@
                         <PopoverTrigger as-child>
                             <div class="flex items-center gap-2 bg-[var(--background-white-main)] rounded-full px-3 py-1 border border-[var(--border-light)] cursor-pointer hover:border-[var(--border-main)] transition-colors h-8">
                                 <RobotAvatar class="w-4 h-4" />
-                                <span class="text-xs font-medium text-[var(--text-secondary)]">ScienceClaw</span>
+                                <span class="text-xs font-medium text-[var(--text-secondary)] whitespace-nowrap">{{ t('App Name') }}</span>
                             </div>
                         </PopoverTrigger>
                         <PopoverContent class="w-[320px] p-0 overflow-hidden bg-[var(--background-white-main)] border border-[var(--border-light)] shadow-xl rounded-xl" align="start" :side-offset="8">
@@ -78,7 +78,7 @@
                                             <RobotAvatar class="w-5 h-5" :interactive="false" />
                                         </div>
                                         <div class="flex flex-col overflow-hidden flex-1">
-                                            <span class="text-sm font-semibold text-[var(--text-primary)]">ScienceClaw</span>
+                                            <span class="text-sm font-semibold text-[var(--text-primary)]">{{ t('App Name') }}</span>
                                             <span class="text-[11px] text-[var(--text-tertiary)]">General Purpose Assistant</span>
                                         </div>
                                         <div class="w-5 h-5 rounded-full bg-[var(--text-primary)] flex items-center justify-center shadow-sm">

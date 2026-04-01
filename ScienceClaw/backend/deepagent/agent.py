@@ -115,7 +115,7 @@ def _build_backend(session_id: str, sandbox: FullSandboxBackend, blocked_skills:
 # 系统提示词
 # ───────────────────────────────────────────────────────────────────
 
-_SYSTEM_PROMPT_TEMPLATE = """You are ScienceClaw, a proactive personal AI assistant designed to help users solve problems, conduct research, and complete tasks efficiently.
+_SYSTEM_PROMPT_TEMPLATE = """You are 研·千易, a proactive personal AI assistant designed to help users solve problems, conduct research, and complete tasks efficiently.
 
 Current date and time: {current_datetime}.
 
@@ -173,7 +173,7 @@ After completing a non-trivial task:
 """
 
 
-_EVAL_SYSTEM_PROMPT_TEMPLATE = """You are ScienceClaw, a proactive personal AI assistant designed to help users solve problems, conduct research, and complete tasks efficiently.
+_EVAL_SYSTEM_PROMPT_TEMPLATE = """You are 研·千易, a proactive personal AI assistant designed to help users solve problems, conduct research, and complete tasks efficiently.
 
 Current date and time: {current_datetime}
 

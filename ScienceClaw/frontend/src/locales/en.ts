@@ -1,4 +1,5 @@
 export default {
+  'App Name': 'Yan·QianYi',
   'Hello': 'Hello',
   'What can I do for you?': 'What would you like to research today?',
   'What are you researching today?': 'What would you like to research today?',
@@ -41,7 +42,7 @@ export default {
   'ScienceClaw is using': 'ScienceClaw is using',
   'Jump to live': 'Jump to live',
   'Failed to load file content': 'Failed to load file content',
-  'Give ScienceClaw a task to work on...': 'Give ScienceClaw a research task...',
+  'Give Yan·QianYi a task to work on...': 'Give Yan·QianYi a research task...',
   // Shell tools
   'Executing command': 'Executing command',
   'Viewing command output': 'Viewing command output',

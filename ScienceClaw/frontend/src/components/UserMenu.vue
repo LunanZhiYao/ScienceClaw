@@ -28,14 +28,6 @@
 
                 <!-- Menu Items -->
                 <div class="flex flex-col p-2 gap-0.5">
-                    <div class="menu-item flex gap-3 items-center px-3 py-2.5 rounded-xl cursor-pointer text-gray-600 dark:text-gray-300 transition-all duration-150 hover:bg-blue-50/80 dark:hover:bg-blue-900/20 hover:text-blue-600 dark:hover:text-blue-400 group"
-                        @click="handleAccountClick">
-                        <div class="size-8 rounded-lg bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center transition-colors group-hover:bg-blue-100 dark:group-hover:bg-blue-900/50">
-                            <User :size="16" class="text-blue-500" />
-                        </div>
-                        <span class="text-sm font-medium">{{ t('Account') }}</span>
-                        <ChevronRight :size="14" class="ml-auto text-gray-300 dark:text-gray-600 group-hover:text-blue-400 transition-all group-hover:translate-x-0.5" />
-                    </div>
 
                     <div class="menu-item flex gap-3 items-center px-3 py-2.5 rounded-xl cursor-pointer text-gray-600 dark:text-gray-300 transition-all duration-150 hover:bg-cyan-50/80 dark:hover:bg-cyan-900/20 hover:text-cyan-600 dark:hover:text-cyan-400 group"
                         @click="handlePersonalizationClick">
@@ -73,38 +65,10 @@
                         <ChevronRight :size="14" class="ml-auto text-gray-300 dark:text-gray-600 group-hover:text-amber-400 transition-all group-hover:translate-x-0.5" />
                     </div>
 
-                    <div class="menu-item flex gap-3 items-center px-3 py-2.5 rounded-xl cursor-pointer text-gray-600 dark:text-gray-300 transition-all duration-150 hover:bg-rose-50/80 dark:hover:bg-rose-900/20 hover:text-rose-600 dark:hover:text-rose-400 group"
-                        @click="handleNotificationsClick">
-                        <div class="size-8 rounded-lg bg-rose-50 dark:bg-rose-900/30 flex items-center justify-center transition-colors group-hover:bg-rose-100 dark:group-hover:bg-rose-900/50">
-                            <Bell :size="16" class="text-rose-500" />
-                        </div>
-                        <span class="text-sm font-medium">{{ t('Notifications') }}</span>
-                        <ChevronRight :size="14" class="ml-auto text-gray-300 dark:text-gray-600 group-hover:text-rose-400 transition-all group-hover:translate-x-0.5" />
-                    </div>
 
-                    <div class="menu-item flex gap-3 items-center px-3 py-2.5 rounded-xl cursor-pointer text-gray-600 dark:text-gray-300 transition-all duration-150 hover:bg-teal-50/80 dark:hover:bg-teal-900/20 hover:text-teal-600 dark:hover:text-teal-400 group"
-                        @click="handleIMClick">
-                        <div class="size-8 rounded-lg bg-teal-50 dark:bg-teal-900/30 flex items-center justify-center transition-colors group-hover:bg-teal-100 dark:group-hover:bg-teal-900/50">
-                            <MessageSquare :size="16" class="text-teal-500" />
-                        </div>
-                        <span class="text-sm font-medium">IM</span>
-                        <ChevronRight :size="14" class="ml-auto text-gray-300 dark:text-gray-600 group-hover:text-teal-400 transition-all group-hover:translate-x-0.5" />
-                    </div>
                 </div>
 
-                <!-- Logout Section -->
-                <template v-if="authProvider !== 'none'">
-                    <div class="mx-4 h-px bg-gradient-to-r from-transparent via-gray-200 dark:via-gray-700 to-transparent"></div>
-                    <div class="p-2">
-                        <div class="menu-item flex gap-3 items-center px-3 py-2.5 rounded-xl cursor-pointer transition-all duration-150 hover:bg-red-50/80 dark:hover:bg-red-900/20 group"
-                            @click="handleLogout">
-                            <div class="size-8 rounded-lg bg-red-50 dark:bg-red-900/30 flex items-center justify-center transition-colors group-hover:bg-red-100 dark:group-hover:bg-red-900/50">
-                                <LogOut :size="16" class="text-red-400 group-hover:text-red-500" />
-                            </div>
-                            <span class="text-sm font-medium text-red-400 group-hover:text-red-500">{{ t('Logout') }}</span>
-                        </div>
-                    </div>
-                </template>
+
             </div>
         </div>
     </div>

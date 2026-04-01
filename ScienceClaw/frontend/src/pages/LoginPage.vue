@@ -4,7 +4,7 @@
     <div class="absolute inset-0 overflow-hidden pointer-events-none">
       <div class="absolute -top-[40%] -left-[20%] w-[60%] h-[60%] rounded-full bg-gradient-to-br from-blue-400/8 via-indigo-400/6 to-purple-400/4 blur-3xl"></div>
       <div class="absolute -bottom-[30%] -right-[20%] w-[50%] h-[50%] rounded-full bg-gradient-to-br from-violet-400/6 via-fuchsia-400/4 to-pink-400/3 blur-3xl"></div>
-      <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiMwMDAiIGZpbGwtb3BhY2l0eT0iMC4wMiI+PHBhdGggZD0iTTM2IDM0djZoLTZ2LTZoNnptMC0zMHY2aC02VjRoNnoiLz48L2c+PC9nPjwvc3ZnPg==')] opacity-60"></div>
+      <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25eIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiMwMDAiIGZpbGwtb3BhY2l0eT0iMC4wMiI+PHBhdGggZD0iTTM2IDM0djZoLTZ2LTZoNnptMC0zMHY2aC02VjRoNnoiLz48L2c+PC9nPjwvc3ZnPg==')] opacity-60"></div>
     </div>
 
     <!-- Top Bar -->
@@ -31,28 +31,25 @@
             <RobotAvatar class="w-[44px] h-[44px] max-sm:w-[36px] max-sm:h-[36px]" :interactive="true" />
           </div>
           <h1 class="text-[20px] font-bold text-center text-[var(--text-primary)] max-sm:text-[18px]">
-            <template v-if="isResettingPassword">{{ t('Reset Password') }}</template>
-            <template v-else-if="isRegistering">{{ t('Register to') }} <span class="brand-text bg-clip-text text-transparent bg-gradient-to-r from-blue-500 via-red-500 to-amber-500" style="background-size:200% 100%">ScienceClaw</span></template>
-            <template v-else>{{ t('Login to') }} <span class="brand-text bg-clip-text text-transparent bg-gradient-to-r from-blue-500 via-red-500 to-amber-500" style="background-size:200% 100%">ScienceClaw</span></template>
+            <span class="brand-text bg-clip-text text-transparent bg-gradient-to-r from-blue-500 via-red-500 to-amber-500" style="background-size:200% 100%">研·千易</span>
           </h1>
-          <p class="text-xs text-[var(--text-tertiary)] -mt-2">
-            {{ isResettingPassword ? t('Enter your email to receive a reset link') : isRegistering ? t('Create your account to get started') : t('Sign in to continue your research') }}
-          </p>
         </div>
       </div>
 
-      <!-- Form Card -->
+      <!-- Notice Card -->
       <div class="login-card w-full max-w-[420px] px-4">
         <div class="bg-white/80 dark:bg-[#1a1a1a]/80 backdrop-blur-xl rounded-2xl border border-gray-100 dark:border-gray-800 shadow-xl shadow-black/5 p-6">
-          <LoginForm v-if="!isRegistering && !isResettingPassword" 
-            @success="handleLoginSuccess" 
-            @switch-to-register="switchToRegister" 
-            @switch-to-reset="switchToReset" />
-          <RegisterForm v-else-if="isRegistering && !isResettingPassword" 
-            @success="handleLoginSuccess" 
-            @switch-to-login="switchToLogin" />
-          <ResetPasswordForm v-else-if="isResettingPassword" 
-            @back-to-login="switchToLogin" />
+          <div class="flex flex-col items-center text-center gap-4">
+            <div class="w-12 h-12 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
+              <svg class="w-6 h-6 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <div>
+              <h2 class="text-lg font-semibold text-[var(--text-primary)] mb-2">登录功能已下线</h2>
+              <p class="text-sm text-[var(--text-secondary)]">请返回云上鲁南登录</p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -60,35 +57,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
-import { useRouter } from 'vue-router'
-import { useI18n } from 'vue-i18n'
 import ScienceClawLogoTextIcon from '@/components/icons/ScienceClawLogoTextIcon.vue'
 import RobotAvatar from '@/components/icons/RobotAvatar.vue'
-import LoginForm from '@/components/login/LoginForm.vue'
-import RegisterForm from '@/components/login/RegisterForm.vue'
-import ResetPasswordForm from '@/components/login/ResetPasswordForm.vue'
 import LanguageSelector from '@/components/LanguageSelector.vue'
-import { useAuth } from '@/api'
-
-const { t } = useI18n()
-const router = useRouter()
-const { isAuthenticated } = useAuth()
-
-const isRegistering = ref(false)
-const isResettingPassword = ref(false)
-
-const switchToRegister = () => { isRegistering.value = true; isResettingPassword.value = false }
-const switchToLogin = () => { isRegistering.value = false; isResettingPassword.value = false }
-const switchToReset = () => { isRegistering.value = false; isResettingPassword.value = true }
-
-const handleLoginSuccess = () => {
-  const redirect = router.currentRoute.value.query.redirect as string
-  router.push(redirect || '/')
-}
-
-watch(isAuthenticated, (authenticated) => { if (authenticated) handleLoginSuccess() })
-onMounted(() => { if (isAuthenticated.value) router.push('/') })
 </script>
 
 <style scoped>
