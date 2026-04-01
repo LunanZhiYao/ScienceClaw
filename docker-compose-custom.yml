@@ -134,7 +134,7 @@ services:
       MODEL_TOP_P: ${MODEL_TOP_P:-0.95}
       MODEL_TOP_K: ${MODEL_TOP_K:-20}
       MODEL_ENABLE_THINKING: ${MODEL_ENABLE_THINKING:-false}
-      FRONTEND_ENDPOINT: http://localhost:5173
+      FRONTEND_ENDPOINT: ${FRONTEND_ENDPOINT:?未知的前端路径}
       WATCHFILES_FORCE_POLLING: "1"
     ports:
       - "12001:8000"
