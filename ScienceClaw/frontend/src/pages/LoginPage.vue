@@ -27,7 +27,7 @@
       <!-- Logo + Title -->
       <div class="login-header w-full max-w-[720px] pt-[24px] mb-[32px] max-sm:pt-[0px]">
         <div class="flex flex-col items-center gap-[16px]">
-          <div class="size-[72px] rounded-2xl bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-600 flex items-center justify-center shadow-xl shadow-indigo-500/20 max-sm:size-[56px]">
+          <div class="size-[72px] rounded-2xl bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-600 flex items-center justify-center shadow-xl max-sm:size-[56px] bg-none">
             <RobotAvatar class="w-[44px] h-[44px] max-sm:w-[36px] max-sm:h-[36px]" :interactive="true" />
           </div>
           <h1 class="text-[20px] font-bold text-center text-[var(--text-primary)] max-sm:text-[18px]">
