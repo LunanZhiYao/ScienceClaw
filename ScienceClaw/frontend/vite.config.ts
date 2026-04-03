@@ -33,4 +33,8 @@ export default defineConfig({
       },
     },
   },
+  preview: {
+    // 让 `vite preview` 能够访问你的自定义域名（解决 Blocked request）
+    allowedHosts: ['localhost', '127.0.0.1', 'openclaw1.shouhuisoft.com'],
+  },
 }); 
