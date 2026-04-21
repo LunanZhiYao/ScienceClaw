@@ -491,9 +491,9 @@ const props = defineProps<{
 
 const botName = computed(() => {
   if (props.mode === 'skills') {
-    return 'ScienceClaw';
+    return '研·千易[skills]';
   }
-  return 'ScienceClaw';
+  return '研·千易';
 });
 
 const emit = defineEmits<{
